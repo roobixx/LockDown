@@ -7,7 +7,9 @@ clear
 
 break="================================================================================================="
 
-# VPN LockDown Script Banner
+####################### LockDown Banner ##########################
+##################################################################
+##################################################################
 
 echo " __      _______  _   _ _                _    _____                      ";
 echo " \ \    / /  __ \| \ | | |              | |  |  __ \                     ";
@@ -23,7 +25,11 @@ echo
 echo "VPN LockDown is designed to prevent data leakage in the event your vpn tunnel goes down."
 echo
 echo $break
-#path=$file
+
+
+####################### Get IP function ##########################
+##################################################################
+##################################################################
 
 ip () {
 	IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
@@ -31,6 +37,10 @@ ip () {
 	echo "Your current IP address is: $IP"
 	echo 
 }
+
+####################### Status function ##########################
+##################################################################
+##################################################################
 
 status() {
   echo 
@@ -69,7 +79,10 @@ status() {
   fi
 }
 
-#Help function
+######################## Help function ###########################
+##################################################################
+##################################################################
+
 function HELP {
  echo "$(basename "$0") [-h] [-f n] [ -i]-- program to calculate the answer to life, the universe and everything
 
@@ -81,6 +94,10 @@ function HELP {
      -h  show this help text"
   exit 1
 }
+
+####################### Case Definition ##########################
+##################################################################
+##################################################################
 
 while getopts i:v:shcled FLAG; do
   case $FLAG in
@@ -147,7 +164,7 @@ while getopts i:v:shcled FLAG; do
 		fi
 		exit 0
 		;;
-	c) #Check if OpenVPN is running
+	c) # Check status of OpenVPN and LockDown
 		if [ "$(pgrep openvpn)" ]; then
 			echo
 			echo "OpenVPN Status: Active"
