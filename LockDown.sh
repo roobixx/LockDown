@@ -63,14 +63,10 @@ status() {
     echo
     echo $break
   else
-    echo "Status: Custom iptables configuration"
+    echo "LockDown Status: Custom iptables configuration"
     echo 
-    echo "Either deactivate or reactivate. If you have another iptables firewall you may need to disable that while connected to the vpn."
+    echo "If you have another iptables firewall you may need to disable that while connected to the vpn."
   fi
-}
-
-vpn () {
-	sleep 1
 }
 
 #Help function
