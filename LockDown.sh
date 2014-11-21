@@ -99,7 +99,7 @@ function HELP {
 ##################################################################
 ##################################################################
 
-while getopts i:v:shcled FLAG; do
+while getopts i:v:shcl FLAG; do
   case $FLAG in
     i)  # Grab IP
       ip
