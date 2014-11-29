@@ -11,6 +11,7 @@ break="=========================================================================
 ##################################################################
 ##################################################################
 
+BANNER(){
 echo " __      _______  _   _ _                _    _____                      ";
 echo " \ \    / /  __ \| \ | | |              | |  |  __ \                     ";
 echo "  \ \  / /| |__) |  \| | |     ___   ___| | _| |  | | _____      ___ __  ";
@@ -25,24 +26,68 @@ echo
 echo "VPN LockDown is designed to prevent data leakage in the event your vpn tunnel goes down."
 echo
 echo $break
-
-
-####################### Get IP function ##########################
-##################################################################
-##################################################################
-
-ip () {
-	IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
-	echo
-	echo "Your current IP address is: $IP"
-	echo 
 }
 
-####################### Status function ##########################
+BANNER
+
 ##################################################################
+######################## Help function ###########################
 ##################################################################
 
-status() {
+function HELP {
+ echo "$(basename "$0") [-h] [-f n] [ -i]-- program to calculate the answer to life, the universe and everything
+
+ where:
+     -c Checks the status of your VPN and if LockDown is enabled
+     -v Starts your VPN (agrument for file is required)
+     -s Stops your VPN
+     -i Check current IP
+     -h  show this help text"
+  exit 1
+}
+
+##################################################################
+######################## VPN function ############################
+##################################################################
+
+VPN() {
+   
+    IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+    echo
+    echo "You have selected to start your vpn"
+    echo
+    echo "Your current IP address is" $IP
+    echo
+    echo "Starting Your VPN"
+    cd
+    vpn=$(sudo openvpn --config $file > /dev/null 2>&1 &)
+    $vpn 
+    echo
+    echo "Please wait for the VPN to come up"
+    sleep 20
+    VPN_IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+    echo
+    if [ $IP = $VPN_IP ]; then 
+      echo
+      echo "Your VPN has not started successfully"
+      echo
+    else
+        echo
+        echo "Your VPN IP address is: $VPN_IP" 
+    fi
+}
+##################################################################
+####################### Status function ##########################
+##################################################################
+
+function STATUS {
+  if [ "$(pgrep openvpn)" ]; then
+      echo
+      echo "OpenVPN Status: Active"
+    else
+      echo
+      echo "OpenVPN Status: Inactive"
+    fi
   echo 
   echo $break
   IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
@@ -68,7 +113,7 @@ status() {
     echo $break
     echo
   elif [ "$IPTABLES" = "$ON" ]; then
-  	echo
+    echo
     echo "LockDown Status: Active"
     echo
     echo $break
@@ -76,143 +121,221 @@ status() {
     echo "LockDown Status: Custom iptables configuration"
     echo 
     echo "If you have another iptables firewall you may need to disable that while connected to the vpn."
+    echo
   fi
 }
 
-######################## Help function ###########################
 ##################################################################
+######################### IP function ############################
 ##################################################################
 
-function HELP {
- echo "$(basename "$0") [-h] [-f n] [ -i]-- program to calculate the answer to life, the universe and everything
-
- where:
-     -c Checks the status of your VPN and if LockDown is enabled
-     -v Starts your VPN (agrument for file is required)
-     -s Stops your VPN
-     -i Check current IP
-     -h  show this help text"
-  exit 1
+GET_IP() {
+  IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+  echo
+  echo "Your current IP address is: $IP"
+  echo 
+  exit 0
 }
 
-####################### Case Definition ##########################
+LOCKDOWN() {
+  if [ "$(pgrep openvpn)" ]; then
+       echo "~~~ Warning ~~~"
+       echo 
+       echo "ATTEMPTING TO CONNECT TO VPN SERVER NOW."
+       echo 
+       echo "YOU MUST BE CONNECTED TO THE VPN BEFORE PROCEEDING OR THE IPTABLES WILL NOT BE CONFIGURED PROPERLY."
+       echo 
+       echo "Press ENTER to proceed."
+       read pause
+
+        IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+      iptables -F
+        iptables -A INPUT -i tun+ -j ACCEPT
+      iptables -A OUTPUT -o tun+ -j ACCEPT
+        iptables -A INPUT -s 127.0.0.1 -j ACCEPT
+        iptables -A OUTPUT -d 127.0.0.1 -j ACCEPT
+        iptables -A INPUT -s $IP -j ACCEPT
+        iptables -A OUTPUT -d $IP -j ACCEPT
+        echo "Iptables have been set."
+        sleep 2
+ 
+      else
+        echo
+        echo "You must have your VPN running in order to start LockDown"   
+        echo
+        echo "Run LockDown with the -v option"
+        echo
+      fi
+}
+
 ##################################################################
+######################## Stop function ###########################
 ##################################################################
 
-while getopts i:v:shcl FLAG; do
+STOP() {
+  echo
+    echo "Checking VPN Status"
+    echo
+    sleep 1
+    if [ "$(pgrep openvpn)" ]; then
+      echo "VPN is running"
+      sleep 2
+      echo
+      echo "Stopping VPN"
+      sleep 2
+      sudo killall openvpn
+      echo
+      echo "VPN Stopped"
+      sleep 2
+      iptables -F
+        iptables -A INPUT -j ACCEPT
+        iptables -A OUTPUT -j ACCEPT
+        echo
+        echo "Iptables have been cleared."
+        echo
+        echo "Exiting now..."
+        echo
+        sleep 2
+      exit 0
+    else
+      echo "VPN is not running"
+      sleep 1
+      iptables -F
+      iptables -A INPUT -j ACCEPT
+        iptables -A OUTPUT -j ACCEPT
+         echo
+         echo "Iptables have been cleared."
+        sleep 2
+      echo
+      echo "Exiting now..."
+      echo
+      sleep 2
+      exit 0
+    fi
+    exit 0
+}
+
+##################################################################
+######################## Menu function ###########################
+##################################################################
+
+GET_MENU(){
+  while :
+do 
+cat << !
+
+.: MENU :.
+
+1. Activate LockDown
+
+2. Deactivate LockDown
+
+3. Status
+
+4. Enable VPN
+
+5. Quit
+
+!
+
+echo -n "Command: "
+read choice
+
+case $choice in
+  1) LOCKDOWN 
+     echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+  2) STOP ;;
+
+  3) STATUS
+      echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+  4)  echo
+      echo -n "Please provide the path to your VPN file: "
+      read path
+      if [ -f $path ]; then
+        file=$path
+        VPN
+      else
+        echo
+        echo $path
+        echo
+        echo "no file given"
+        echo
+        echo "Press ENTER to return to MENU."
+        read pause
+        clear
+        BANNER
+    fi
+      echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+  5) echo
+     echo "Now Exiting..."
+     echo
+     sleep 1
+     exit ;;
+     
+  *) echo 
+     echo "You made an invalid selection. Please choose an option from the menu"
+     echo
+     echo "Press ENTER to return to MENU."
+     read pause
+     clear
+     BANNER ;;
+esac
+done
+}
+
+##################################################################
+####################### Case Definitions #########################
+##################################################################
+
+while getopts "i:v:shcl" FLAG; do
   case $FLAG in
     i)  # Grab IP
-      ip
+      GET_IP
       ;;  
     v) #VPN option
-	  if [ -f $OPTARG ]; then
-	  	file=$OPTARG
-	  else
-	  	echo "no file given"
-	  fi
-	  echo "You have selected to start your vpn"
-	  echo
-	  echo "Starting Your VPN"
-	  cd
-	  vpn=$(sudo openvpn --config $file > /dev/null 2>&1 &)
-	  $vpn 
-	  echo
-	  echo "Please wait for the VPN to come up"
-	  sleep 20
-	  VPN_IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
-	  echo
-	  if [ $IP = $VPN_IP ]; then 
-	  	echo "Your VPN has not started successfully"
-	  	exit 1
-	  else
-	  	  echo "Your current IP address is: $VPN_IP" 
-	  fi
+      if [ -f $OPTARG ]; then
+      file=$OPTARG
+    else
+      echo "no file given"
+    fi
+	     VPN
+       exit 0
       ;;
-    s) #Stop VPN
-		echo
-		echo "Checking VPN Status"
-		echo
-		sleep 1
-		if [ "$(pgrep openvpn)" ]; then
-			echo "VPN is running"
-			sleep 2
-			echo
-			echo "Stopping VPN"
-			sleep 2
-			sudo killall openvpn
-			echo
-			echo "VPN Stopped"
-			sleep 2
-			iptables -F
-  			iptables -A INPUT -j ACCEPT
-  			iptables -A OUTPUT -j ACCEPT
-  			echo
-  			echo "Iptables have been cleared."
-  			sleep 2
-			clear
-		else
-			echo "VPN is not running"
-			sleep 1
-			iptables -F
- 			iptables -A INPUT -j ACCEPT
-  			iptables -A OUTPUT -j ACCEPT
-  			 echo "Iptables have been cleared."
-  			sleep 2
-			echo
-			echo "Exiting now..."
-			exit 0
-		fi
-		exit 0
-		;;
+  s) #Stop VPN
+		  STOP
+		  ;;
 	c) # Check status of OpenVPN and LockDown
-		if [ "$(pgrep openvpn)" ]; then
-			echo
-			echo "OpenVPN Status: Active"
-		else
-			echo
-			echo "OpenVPN Status: Inactive"
-		fi
-		status
-		;;		
+		  STATUS
+      exit 0
+		  ;;		
 	l) # Enable LockDown
-		if [ "$(pgrep openvpn)" ]; then
-			 echo "~~~ Warning ~~~"
- 			 echo 
- 			 echo "ATTEMPTING TO CONNECT TO VPN SERVER NOW."
- 			 echo 
- 			 echo "YOU MUST BE CONNECTED TO THE VPN BEFORE PROCEEDING OR THE IPTABLES WILL NOT BE CONFIGURED PROPERLY."
- 			 echo 
- 			 echo "Press ENTER to proceed."
- 			 read pause
-
-  			IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
- 			iptables -F
-  			iptables -A INPUT -i tun+ -j ACCEPT
- 			iptables -A OUTPUT -o tun+ -j ACCEPT
-  			iptables -A INPUT -s 127.0.0.1 -j ACCEPT
-  			iptables -A OUTPUT -d 127.0.0.1 -j ACCEPT
-  			iptables -A INPUT -s $IP -j ACCEPT
-  			iptables -A OUTPUT -d $IP -j ACCEPT
-  			echo "Iptables have been set."
-  			sleep 2
- 
-  		else
-  			echo "You must have your VPN running in order to start LockDown"	 
-  			echo
-  			echo "Run LockDown with the -v option"
-  			echo
-  		fi
-  		exit 0
+		  LOCKDOWN
+      exit 0
   		;;
-    h)  #show help
+  h)  #show help
       HELP
       ;;
-    *) #unrecognized option - show help
+  *) # Knock Knock
       HELP
       ;;
   esac
 done
 
-shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
+shift $((OPTIND-1))
+
+#GET_MENU
+GET_MENU
 
 exit 0
