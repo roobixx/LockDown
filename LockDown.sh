@@ -51,29 +51,43 @@ function HELP {
 ##################################################################
 
 VPN() {
-   
-    IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
-    echo
-    echo "You have selected to start your vpn"
-    echo
-    echo "Your current IP address is" $IP
-    echo
-    echo "Starting Your VPN"
-    cd
-    vpn=$(sudo openvpn --config $file > /dev/null 2>&1 &)
-    $vpn 
-    echo
-    echo "Please wait for the VPN to come up"
-    sleep 20
-    VPN_IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
-    echo
-    if [ $IP = $VPN_IP ]; then 
+  echo
+  echo -n "Please provide the path to your VPN file: "
+  read path
+    if [ -f $path ]; then
+      file=$path
+      IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
       echo
-      echo "Your VPN has not started successfully"
+      echo "You have selected to start your vpn"
       echo
+      echo "Your current IP address is" $IP
+      echo
+      echo "Starting Your VPN"
+      cd
+      vpn=$(sudo openvpn --config $file > /dev/null 2>&1 &)
+      $vpn 
+      echo
+      echo "Please wait for the VPN to come up"
+      sleep 20
+      VPN_IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+      echo
+        if [ $IP = $VPN_IP ]; then 
+          echo
+          echo "Your VPN has not started successfully"
+          echo
+        else
+          echo
+          echo "Your VPN IP address is: $VPN_IP" 
+        fi
     else
-        echo
-        echo "Your VPN IP address is: $VPN_IP" 
+      echo
+      echo "The file path you specified does not exist."
+      echo
+      echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER
+      GET_MENU
     fi
 }
 ##################################################################
@@ -134,7 +148,6 @@ GET_IP() {
   echo
   echo "Your current IP address is: $IP"
   echo 
-  exit 0
 }
 
 LOCKDOWN() {
@@ -234,7 +247,9 @@ cat << !
 
 4. Enable VPN
 
-5. Quit
+5. Get Current IP address
+
+6. Quit
 
 !
 
@@ -256,34 +271,24 @@ case $choice in
       clear
       BANNER ;;
 
-  4)  echo
-      echo -n "Please provide the path to your VPN file: "
-      read path
-      if [ -f $path ]; then
-        file=$path
-        VPN
-      else
-        echo
-        echo $path
-        echo
-        echo "no file given"
-        echo
-        echo "Press ENTER to return to MENU."
-        read pause
-        clear
-        BANNER
-    fi
+  4)  VPN
       echo "Press ENTER to return to MENU."
       read pause
       clear
       BANNER ;;
 
-  5) echo
+  5) GET_IP
+     echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+   6) echo
      echo "Now Exiting..."
      echo
      sleep 1
      exit ;;
-     
+
   *) echo 
      echo "You made an invalid selection. Please choose an option from the menu"
      echo
@@ -299,35 +304,30 @@ done
 ####################### Case Definitions #########################
 ##################################################################
 
-while getopts "i:v:shcl" FLAG; do
+while getopts "vshcli" FLAG; do
   case $FLAG in
     i)  # Grab IP
       GET_IP
+      exit 0
       ;;  
     v) #VPN option
-      if [ -f $OPTARG ]; then
-      file=$OPTARG
-    else
-      echo "no file given"
-    fi
-	     VPN
-       exit 0
-      ;;
-  s) #Stop VPN
+       VPN
+       ;;
+    s) #Stop VPN
 		  STOP
 		  ;;
-	c) # Check status of OpenVPN and LockDown
+	  c) # Check status of OpenVPN and LockDown
 		  STATUS
       exit 0
 		  ;;		
-	l) # Enable LockDown
+	  l) # Enable LockDown
 		  LOCKDOWN
       exit 0
   		;;
-  h)  #show help
+    h)  #show help
       HELP
       ;;
-  *) # Knock Knock
+    *) # Knock Knock
       HELP
       ;;
   esac
