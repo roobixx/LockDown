@@ -1,7 +1,6 @@
 #!/bin/bash
 # Written by Tim Fowler
 # VPN Lockdown
-clear
 
 # Variables
 
@@ -21,13 +20,15 @@ echo "                                                                         "
 echo 
 echo $break
 echo
-echo "VPN LockDown is designed to prevent data leakage in the event your vpn tunnel goes down."
+echo "   VPN LockDown is a simple wrapper around OpenVPN and IPTABLES that is designed"
+echo "   to prevent data leakage in the event your VPN tunnel fails"
 echo
 echo $break
 }
 
-### Call Banner
+### At program execution
 
+clear
 BANNER
 
 ######################### IP function ############################
@@ -35,7 +36,7 @@ BANNER
 GET_IP() {
   IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
   echo
-  echo "Your current IP address is: $IP"
+  echo -e "Your current IP address is: \e[1;34m$IP\e[0m"
   echo 
 }
 
@@ -46,19 +47,21 @@ GET_MENU(){
 do 
 cat << !
 
-.: MENU :.
+       ~~: MENU :~~
 
-1. Activate LockDown
+  1. Activate LockDown
 
-2. Deactivate LockDown
+  2. Deactivate LockDown
 
-3. Status
+  3. Status
 
-4. Enable VPN
+  4. Enable VPN
 
-5. Get Current IP address
+  5. Get Current IP address
 
-6. Quit
+  6. Help
+
+  7. Quit
 
 !
 
@@ -92,7 +95,16 @@ case $choice in
       clear
       BANNER ;;
 
-   6) echo
+  6) clear
+     BANNER
+     HELP
+     echo 
+     echo "Press ENTER to return to MENU."
+     read pause
+     clear
+     BANNER ;;
+
+   7) echo
      echo "Now Exiting..."
      echo
      sleep 1
@@ -120,7 +132,6 @@ HELP() {
      -s Stops your VPN
      -i Check current IP
      -h  show this help text"
-  exit 1
 }
 
 ###################### LockDown function #########################
@@ -260,7 +271,7 @@ VPN() {
       echo
       echo "You have selected to start your vpn"
       echo
-      echo "Your current IP address is" $IP
+      echo -e "Your current IP address is: \e[1;34m$IP\e[0m"
       echo
       echo "Starting Your VPN"
       cd
@@ -277,7 +288,7 @@ VPN() {
           echo
         else
           echo
-          echo "Your VPN IP address is: $VPN_IP" 
+          echo -e "Your VPN IP address is: \e[1;34m$VPN_IP\e[0m" 
         fi
     else
       echo
@@ -291,6 +302,9 @@ VPN() {
 while getopts "vshcli" FLAG; do
   case $FLAG in
     i)  # Grab IP
+      clear
+      echo 
+      echo "Checking your IP address"
       GET_IP
       exit 0
       ;;  
@@ -311,9 +325,11 @@ while getopts "vshcli" FLAG; do
   		;;
     h)  #show help
       HELP
+      exit 1
       ;;
     *) # Knock Knock
       HELP
+      exit 1
       ;;
   esac
 done
