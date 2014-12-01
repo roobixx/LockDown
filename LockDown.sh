@@ -49,19 +49,21 @@ cat << !
 
        ~~: MENU :~~
 
-  1. Activate LockDown
+  1. Enable VPN
 
-  2. Deactivate LockDown
+  2. Disable VPN
 
-  3. Status
+  3. Activate LockDown
 
-  4. Enable VPN
+  4. Deactivate LockDown
 
-  5. Get Current IP address
+  5. Get Status
 
-  6. Help
+  6. Get Current IP address
 
-  7. Quit
+  7. Help
+
+  8. Quit
 
 !
 
@@ -69,33 +71,35 @@ echo -n "Command: "
 read choice
 
 case $choice in
-  1) LOCKDOWN 
-     echo "Press ENTER to return to MENU."
+  1) VPN
+      echo "Press ENTER to return to MENU."
       read pause
       clear
       BANNER ;;
 
   2) STOP ;;
 
-  3) STATUS
-      echo "Press ENTER to return to MENU."
-      read pause
-      clear
-      BANNER ;;
-
-  4)  VPN
-      echo "Press ENTER to return to MENU."
-      read pause
-      clear
-      BANNER ;;
-
-  5) GET_IP
+  3) LOCKDOWN 
      echo "Press ENTER to return to MENU."
       read pause
       clear
       BANNER ;;
 
-  6) clear
+  4)  STOP ;;
+
+  5) STATUS
+      echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+  6) GET_IP
+     echo "Press ENTER to return to MENU."
+      read pause
+      clear
+      BANNER ;;
+
+  7) clear
      BANNER
      HELP
      echo 
@@ -103,8 +107,7 @@ case $choice in
      read pause
      clear
      BANNER ;;
-
-   7) echo
+8) echo
      echo "Now Exiting..."
      echo
      sleep 1
@@ -283,15 +286,14 @@ VPN() {
       VPN_IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
       echo
         if [ $IP = $VPN_IP ]; then 
-          echo
           echo "Your VPN has not started successfully"
           echo
         else
           echo
           echo -e "Your VPN IP address is: \e[1;34m$VPN_IP\e[0m" 
+          echo
         fi
     else
-      echo
       echo "The file path you specified does not exist."
       echo
    fi
