@@ -77,7 +77,7 @@ case $choice in
       clear
       BANNER ;;
 
-  2) L_STOP ;;
+  2) V_STOP ;;
 
   3) L_START
      echo "Press ENTER to return to MENU."
