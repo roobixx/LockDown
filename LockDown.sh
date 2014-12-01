@@ -77,15 +77,15 @@ case $choice in
       clear
       BANNER ;;
 
-  2) STOP ;;
+  2) L_STOP ;;
 
-  3) LOCKDOWN 
+  3) L_START
      echo "Press ENTER to return to MENU."
       read pause
       clear
       BANNER ;;
 
-  4)  STOP ;;
+  4)  L_STOP ;;
 
   5) STATUS
       echo "Press ENTER to return to MENU."
@@ -139,7 +139,7 @@ HELP() {
 
 ###################### LockDown function #########################
 
-LOCKDOWN() {
+L_START() {
   if [ "$(pgrep openvpn)" ]; then
        echo "~~~ Warning ~~~"
        echo 
@@ -219,7 +219,7 @@ STATUS() {
 
 ######################## Stop function ###########################
 
-STOP() {
+L_STOP() {
   echo
     echo "Checking VPN Status"
     echo
@@ -315,14 +315,14 @@ while getopts "vshcli" FLAG; do
        exit 0
        ;;
     s) #Stop VPN
-		  STOP
+		  L_STOP
 		  ;;
 	  c) # Check status of OpenVPN and LockDown
 		  STATUS
       exit 0
 		  ;;		
 	  l) # Enable LockDown
-		  LOCKDOWN
+		  L_START
       exit 0
   		;;
     h)  #show help
