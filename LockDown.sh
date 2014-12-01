@@ -71,7 +71,7 @@ echo -n "Command: "
 read choice
 
 case $choice in
-  1) VPN
+  1) V_START
       echo "Press ENTER to return to MENU."
       read pause
       clear
@@ -264,7 +264,7 @@ L_STOP() {
 
 ######################## VPN function ############################
 
-VPN() {
+V_START() {
   echo
   echo -n "Please provide the path to your VPN file: "
   read path
@@ -299,6 +299,37 @@ VPN() {
    fi
 }
 
+V_STOP(){
+  echo
+    echo "Checking VPN Status"
+    echo
+    sleep 1
+    if [ "$(pgrep openvpn)" ]; then
+      echo "VPN is running"
+      sleep 2
+      echo
+      echo "Stopping VPN"
+      sleep 2
+      sudo killall openvpn
+      echo
+      echo "VPN Stopped"
+      sleep 2
+      echo
+      echo "Exiting now..."
+      echo
+      sleep 2
+      exit 0
+    else
+      echo "VPN is not running"
+      sleep 2
+      echo
+      echo "Exiting now..."
+      echo
+      sleep 2
+      exit 0
+    fi
+    exit 0
+}
 #################### Commandline Functions ######################
 
 while getopts "vshcli" FLAG; do
@@ -311,7 +342,7 @@ while getopts "vshcli" FLAG; do
       exit 0
       ;;  
     v) #VPN option
-       VPN
+       V_START
        exit 0
        ;;
     s) #Stop VPN
