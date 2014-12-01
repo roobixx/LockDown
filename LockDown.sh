@@ -303,6 +303,7 @@ V_START() {
           echo
         fi
     else
+      echo
       echo "The file path you specified does not exist."
       echo
    fi
