@@ -35,9 +35,12 @@ BANNER
 
 GET_IP() {
   IP=$(wget https://duckduckgo.com/?q=whats+my+ip -q -O - | grep -Eo '\<[[:digit:]]{1,3}(\.[[:digit:]]{1,3}){3}\>')
+  echo $break
   echo
   echo -e "Your current IP address is: \e[1;34m$IP\e[0m"
   echo 
+  echo $break
+  echo
 }
 
 ######################## Menu function ###########################
@@ -77,7 +80,12 @@ case $choice in
       clear
       BANNER ;;
 
-  2) V_STOP ;;
+  2) V_STOP
+     echo
+     echo "Press ENTER to return to MENU."
+     read pause
+     clear
+     BANNER ;;
 
   3) L_START
      echo "Press ENTER to return to MENU."
@@ -173,6 +181,8 @@ L_START() {
 ####################### Status function ##########################
 
 STATUS() {
+  echo
+  echo $break
   if [ "$(pgrep openvpn)" ]; then
       echo
       echo "OpenVPN Status: Active"
@@ -259,7 +269,6 @@ L_STOP() {
       sleep 2
       exit 0
     fi
-    exit 0
 }
 
 ######################## VPN function ############################
@@ -322,13 +331,7 @@ V_STOP(){
     else
       echo "VPN is not running"
       sleep 2
-      echo
-      echo "Exiting now..."
-      echo
-      sleep 2
-      exit 0
     fi
-    exit 0
 }
 #################### Commandline Functions ######################
 
@@ -347,6 +350,11 @@ while getopts "vshcli" FLAG; do
        ;;
     s) #Stop VPN
 		  L_STOP
+      echo
+      echo "Exiting now..."
+      echo
+      sleep 2
+      exit 0
 		  ;;
 	  c) # Check status of OpenVPN and LockDown
 		  STATUS
